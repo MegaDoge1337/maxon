@@ -7,6 +7,7 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 	"github.com/spf13/viper"
 )
 
@@ -76,6 +77,21 @@ func main() {
 		os.Exit(1)
 	}
 	slog.Info("database connection established")
+
+	// migrate tables
+	goose.SetBaseFS(nil)
+	goose.SetTableName(environment.GetString("GOOSE_TABLE"))
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		slog.Error("failed to set goose dialect", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	if err := goose.Up(db, "./migrations"); err != nil {
+		slog.Error("failed to run migrations", slog.Any("error", err))
+		os.Exit(1)
+	}
+	slog.Info("migrations completed successfully")
 }
 
 func setupLogger(mode string) {
