@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 1Qwerty
+      POSTGRES_DB: maxon
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./.docker/data/postgres:/var/lib/postgresql/data/pgdata
+    restart: always
