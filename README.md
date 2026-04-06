@@ -1,2 +1,2 @@
-# MAXON (МАСКОН)
+# Maxon
 Pure social network.
