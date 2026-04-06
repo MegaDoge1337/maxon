@@ -1,0 +1,14 @@
+output   = "models"
+wipe     = true
+no-tests = true
+add-enum-types = true
+
+[psql]
+  dbname = "maxon"
+  host   = "localhost"
+  port   = 5432
+  user   = "admin"
+  pass   = "1Qwerty"
+  schema = "public"
+  sslmode = "disable"
+  blacklist = ["migrations"]
