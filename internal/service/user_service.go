@@ -8,25 +8,29 @@ import (
 	"github.com/megadoge1337/maxon/internal/domain"
 	"github.com/megadoge1337/maxon/internal/repository"
 	"github.com/megadoge1337/maxon/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	repo *repository.UserRepository
 }
 
-func NewUserRepository(repo *repository.UserRepository) *UserService {
+func NewUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{
 		repo: repo,
 	}
 }
 
 func (s *UserService) Create(u domain.User) (*domain.User, error) {
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	hashedPassword := string(hashBytes)
+
 	var userModel models.User
 	userModel.ID = u.ID
 	userModel.Username = u.Username
 	userModel.Email = u.Email
-	userModel.Password = u.Password
-	userModel.Created = null.TimeFrom(u.Created)
+	userModel.Password = hashedPassword
+	userModel.Created = null.TimeFrom(time.Now())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
