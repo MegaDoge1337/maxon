@@ -3,9 +3,9 @@ package domain
 import "time"
 
 type User struct {
-	ID       int
-	Username string
-	Email    string
-	Password string
-	Created  time.Time
+	ID       int       `json:"id"`
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
+	Created  time.Time `json:"created"`
 }
