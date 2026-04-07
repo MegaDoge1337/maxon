@@ -19,7 +19,7 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 
-func (h *UserHandler) Routes() http.Handler {
+func (h *UserHandler) RoutesV1() http.Handler {
 	r := chi.NewRouter()
 
 	r.Get("/", h.GetAll)
