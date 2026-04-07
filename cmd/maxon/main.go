@@ -110,7 +110,13 @@ func main() {
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
 
-	router.Mount("/users", userHandler.Routes())
+	// api routes
+	router.Route("/api", func(r chi.Router) {
+		// v1 routes
+		r.Route("/v1", func(r chi.Router) {
+			r.Mount("/users", userHandler.RoutesV1())
+		})
+	})
 
 	// create HTTP server with config settings
 	server := &http.Server{
