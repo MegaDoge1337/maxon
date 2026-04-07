@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/aarondl/null/v8"
 	"github.com/megadoge1337/maxon/internal/domain"
 	"github.com/megadoge1337/maxon/internal/repository"
 	"github.com/megadoge1337/maxon/models"
@@ -21,16 +20,14 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) Create(u domain.User) (*domain.User, error) {
-	hashBytes, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+func (s *UserService) Create(createUserCommand domain.CreateUserCommand) (*domain.User, error) {
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte(createUserCommand.Password), bcrypt.DefaultCost)
 	hashedPassword := string(hashBytes)
 
 	var userModel models.User
-	userModel.ID = u.ID
-	userModel.Username = u.Username
-	userModel.Email = u.Email
+	userModel.Username = createUserCommand.Username
+	userModel.Email = createUserCommand.Email
 	userModel.Password = hashedPassword
-	userModel.Created = null.TimeFrom(time.Now())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -40,13 +37,15 @@ func (s *UserService) Create(u domain.User) (*domain.User, error) {
 		return nil, err
 	}
 
-	u.ID = newUser.ID
-	u.Username = newUser.Username
-	u.Email = newUser.Email
-	u.Password = newUser.Password
-	u.Created = newUser.Created.Time
+	user := domain.User{
+		ID:       newUser.ID,
+		Username: newUser.Username,
+		Email:    newUser.Email,
+		Password: newUser.Password,
+		Created:  newUser.Created.Time,
+	}
 
-	return &u, nil
+	return &user, nil
 }
 
 func (s *UserService) GetAll() ([]domain.User, error) {
@@ -113,19 +112,36 @@ func (s *UserService) GetByUsername(username string) (*domain.User, error) {
 	return &user, err
 }
 
-func (s *UserService) Update(user domain.User, id int) (*domain.User, error) {
+func (s *UserService) UpdateById(updateUserCommand domain.UpdateUserCommand, id int) (*domain.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	userModel := models.User{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
-		Password: user.Password,
-		Created:  null.TimeFrom(user.Created),
+	userModel, err := s.repo.GetById(ctx, id)
+	if err != nil {
+		return nil, err
 	}
 
-	updateUserModel, err := s.repo.UpdateById(ctx, &userModel)
+	if updateUserCommand.Username != "" {
+		userModel.Username = updateUserCommand.Username
+	}
+
+	if updateUserCommand.Email != "" {
+		userModel.Email = updateUserCommand.Email
+	}
+
+	if updateUserCommand.OldPassword != "" && updateUserCommand.NewPassword != "" {
+		err := bcrypt.CompareHashAndPassword([]byte(userModel.Password), []byte(updateUserCommand.OldPassword))
+		if err != nil {
+			return nil, err
+		}
+
+		hashBytes, err := bcrypt.GenerateFromPassword([]byte(updateUserCommand.NewPassword), bcrypt.DefaultCost)
+		hashedPassword := string(hashBytes)
+
+		userModel.Password = hashedPassword
+	}
+
+	updateUserModel, err := s.repo.UpdateById(ctx, userModel)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/megadoge1337/maxon/internal/domain"
+	"github.com/megadoge1337/maxon/internal/dto"
 	"github.com/megadoge1337/maxon/internal/service"
 	"github.com/megadoge1337/maxon/pkg/helper"
 )
@@ -26,7 +27,7 @@ func (h *UserHandler) RoutesV1() http.Handler {
 	r.Post("/", h.Create)
 	r.Get("/{id}", h.GetById)
 	r.Get("/username/{username}", h.GetByUsername)
-	r.Put("/{id}", h.Update)
+	r.Put("/{id}", h.UpdateById)
 	r.Delete("/{id}", h.DeleteById)
 
 	return r
@@ -40,7 +41,18 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusOK, users)
+	var usersDtos []dto.UserDto
+
+	for _, user := range users {
+		usersDtos = append(usersDtos, dto.UserDto{
+			ID:       user.ID,
+			Username: user.Username,
+			Email:    user.Email,
+			Created:  user.Created,
+		})
+	}
+
+	helper.WriteJSON(w, http.StatusOK, usersDtos)
 }
 
 func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +69,14 @@ func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusOK, user)
+	userDto := dto.UserDto{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Created:  user.Created,
+	}
+
+	helper.WriteJSON(w, http.StatusOK, userDto)
 }
 
 func (h *UserHandler) GetByUsername(w http.ResponseWriter, r *http.Request) {
@@ -70,47 +89,81 @@ func (h *UserHandler) GetByUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusOK, user)
+	userDto := dto.UserDto{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Created:  user.Created,
+	}
+
+	helper.WriteJSON(w, http.StatusOK, userDto)
 }
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var input domain.User
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	var createUserDto dto.CreateUserDto
+	if err := json.NewDecoder(r.Body).Decode(&createUserDto); err != nil {
 		helper.WriteError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	user, err := h.service.Create(input)
+	createUser := domain.CreateUserCommand{
+		Username: createUserDto.Username,
+		Email:    createUserDto.Email,
+		Password: createUserDto.Password,
+	}
+
+	newUser, err := h.service.Create(createUser)
 	if err != nil {
 		slog.Error("Create failed", slog.Any("error", err))
 		helper.WriteError(w, http.StatusInternalServerError, "failed to create user")
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusCreated, user)
+	userDto := dto.UserDto{
+		ID:       newUser.ID,
+		Username: newUser.Username,
+		Email:    newUser.Email,
+		Created:  newUser.Created,
+	}
+
+	helper.WriteJSON(w, http.StatusCreated, userDto)
 }
 
-func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) UpdateById(w http.ResponseWriter, r *http.Request) {
 	id, err := helper.ParseID(chi.URLParam(r, "id"))
 	if err != nil {
 		helper.WriteError(w, http.StatusBadRequest, "invalid id")
 		return
 	}
 
-	var input domain.User
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+	var updateUserDto dto.UpdateUserDto
+	if err := json.NewDecoder(r.Body).Decode(&updateUserDto); err != nil {
 		helper.WriteError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	user, err := h.service.Update(input, id)
+	updateUserCommand := domain.UpdateUserCommand{
+		Username:    updateUserDto.Username,
+		Email:       updateUserDto.Email,
+		OldPassword: updateUserDto.OldPassword,
+		NewPassword: updateUserDto.NewPassword,
+	}
+
+	user, err := h.service.UpdateById(updateUserCommand, id)
 	if err != nil {
 		slog.Error("Update failed", slog.Int("id", id), slog.Any("error", err))
 		helper.WriteError(w, http.StatusInternalServerError, "failed to update user")
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusOK, user)
+	userDto := dto.UserDto{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Created:  user.Created,
+	}
+
+	helper.WriteJSON(w, http.StatusOK, userDto)
 }
 
 func (h *UserHandler) DeleteById(w http.ResponseWriter, r *http.Request) {
@@ -127,5 +180,12 @@ func (h *UserHandler) DeleteById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helper.WriteJSON(w, http.StatusOK, user)
+	userDto := dto.UserDto{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Created:  user.Created,
+	}
+
+	helper.WriteJSON(w, http.StatusOK, userDto)
 }
