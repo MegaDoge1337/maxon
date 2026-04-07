@@ -3,10 +3,16 @@ package main
 import (
 	"database/sql"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/megadoge1337/maxon/internal/handler"
+	"github.com/megadoge1337/maxon/internal/repository"
+	"github.com/megadoge1337/maxon/internal/service"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/viper"
 )
@@ -92,6 +98,35 @@ func main() {
 		os.Exit(1)
 	}
 	slog.Info("migrations completed successfully")
+
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+
+	router := chi.NewRouter()
+
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+
+	router.Mount("/users", userHandler.Routes())
+
+	// create HTTP server with config settings
+	server := &http.Server{
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	slog.Info("starting HTTP server", slog.String("address", cfg.HTTPServer.Address))
+
+	if err := server.ListenAndServe(); err != nil {
+		slog.Error("server failed to start", slog.Any("error", err))
+		os.Exit(1)
+	}
 }
 
 func setupLogger(mode string) {
