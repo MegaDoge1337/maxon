@@ -100,8 +100,13 @@ func main() {
 	slog.Info("migrations completed successfully")
 
 	userRepo := repository.NewUserRepository(db)
+	authRepo := repository.NewAuthRepository(db)
+
 	userService := service.NewUserService(userRepo)
+	authService := service.NewAuthService(authRepo, userRepo, environment.GetString("JWT_SECRET"))
+
 	userHandler := handler.NewUserHandler(userService)
+	authHandler := handler.NewAuthHandler(authService)
 
 	router := chi.NewRouter()
 
@@ -115,6 +120,7 @@ func main() {
 		// v1 routes
 		r.Route("/v1", func(r chi.Router) {
 			r.Mount("/users", userHandler.RoutesV1())
+			r.Mount("/auth", authHandler.RoutesV1())
 		})
 	})
 
