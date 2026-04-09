@@ -7,7 +7,5 @@ CREATE TABLE users (
     created TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_users_username ON users(username);
-
 -- +goose Down
-DROP TABLE users;
+DROP TABLE IF EXISTS users;
