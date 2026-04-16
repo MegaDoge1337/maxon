@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/megadoge1337/maxon/internal/handler"
-	maxonmw "github.com/megadoge1337/maxon/internal/middleware"
+	"github.com/megadoge1337/maxon/internal/infrastructure"
 	"github.com/megadoge1337/maxon/internal/repository"
 	"github.com/megadoge1337/maxon/internal/service"
 	"github.com/pressly/goose/v3"
@@ -100,7 +100,7 @@ func main() {
 	}
 	slog.Info("migrations completed successfully")
 
-	userRepo := repository.NewUserRepository(db)
+	var userRepo repository.UserRepository = infrastructure.NewSqlBoilerUserRepository(db)
 	authRepo := repository.NewAuthRepository(db)
 
 	userService := service.NewUserService(userRepo)
@@ -122,12 +122,13 @@ func main() {
 		r.Route("/v1", func(r chi.Router) {
 			// public
 			r.Mount("/auth", authHandler.RoutesV1())
+			r.Mount("/users", userHandler.RoutesV1())
 
 			// auth protected
-			r.Group(func(r chi.Router) {
-				r.Use(maxonmw.AuthMiddleware(environment.GetString("JWT_SECRET")))
-				r.Mount("/users", userHandler.RoutesV1())
-			})
+			// r.Group(func(r chi.Router) {
+			// 	r.Use(maxonmw.AuthMiddleware(environment.GetString("JWT_SECRET")))
+			// 	r.Mount("/users", userHandler.RoutesV1())
+			// })
 		})
 	})
 

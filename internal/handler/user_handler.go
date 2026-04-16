@@ -34,7 +34,7 @@ func (h *UserHandler) RoutesV1() http.Handler {
 }
 
 func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	users, err := h.service.GetAll()
+	users, err := h.service.GetAll(r.Context())
 	if err != nil {
 		slog.Error("GetAll failed", slog.Any("error", err))
 		helper.WriteError(w, http.StatusInternalServerError, "failed to get users")
@@ -62,7 +62,7 @@ func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.GetById(id)
+	user, err := h.service.GetById(r.Context(), id)
 	if err != nil {
 		slog.Error("GetById failed", slog.Int("id", id), slog.Any("error", err))
 		helper.WriteError(w, http.StatusNotFound, "user not found")
@@ -82,7 +82,7 @@ func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) GetByUsername(w http.ResponseWriter, r *http.Request) {
 	username := chi.URLParam(r, "username")
 
-	user, err := h.service.GetByUsername(username)
+	user, err := h.service.GetByUsername(r.Context(), username)
 	if err != nil {
 		slog.Error("GetByUsername failed", slog.String("username", username), slog.Any("error", err))
 		helper.WriteError(w, http.StatusNotFound, "user not found")
@@ -112,7 +112,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Password: createUserDto.Password,
 	}
 
-	newUser, err := h.service.Create(createUser)
+	newUser, err := h.service.Create(r.Context(), createUser)
 	if err != nil {
 		slog.Error("Create failed", slog.Any("error", err))
 		helper.WriteError(w, http.StatusInternalServerError, "failed to create user")

@@ -12,3 +12,10 @@ type UpdateUserCommand struct {
 	OldPassword string
 	NewPassword string
 }
+
+func (cu *CreateUserCommand) ToDomain() User {
+	return User{
+		Username: cu.Username,
+		Email:    cu.Email,
+	}
+}
