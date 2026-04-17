@@ -9,13 +9,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserSerivceDeps struct {
+	UserRepo repository.UserRepository
+}
+
 type UserService struct {
 	repo repository.UserRepository
 }
 
-func NewUserService(repo repository.UserRepository) *UserService {
+func NewUserService(deps UserSerivceDeps) *UserService {
 	return &UserService{
-		repo: repo,
+		repo: deps.UserRepo,
 	}
 }
 
