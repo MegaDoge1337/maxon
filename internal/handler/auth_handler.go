@@ -9,22 +9,38 @@ import (
 	"github.com/megadoge1337/maxon/internal/domain"
 	"github.com/megadoge1337/maxon/internal/dto"
 	"github.com/megadoge1337/maxon/internal/service"
-	"github.com/megadoge1337/maxon/pkg/helper"
+	"github.com/megadoge1337/maxon/pkg/response"
 )
 
-type AuthHandler struct {
-	service *service.AuthService
+type AuthHandlerDeps struct {
+	AuthService    service.AuthService
+	AuthMiddleware func(http.Handler) http.Handler
 }
 
-func NewAuthHandler(s *service.AuthService) *AuthHandler {
-	return &AuthHandler{service: s}
+type AuthHandler struct {
+	service        service.AuthService
+	authMiddleware func(http.Handler) http.Handler
+}
+
+func NewAuthHandler(deps AuthHandlerDeps) *AuthHandler {
+	return &AuthHandler{
+		service:        deps.AuthService,
+		authMiddleware: deps.AuthMiddleware,
+	}
 }
 
 func (h *AuthHandler) RoutesV1() http.Handler {
 	r := chi.NewRouter()
 
+	// public
 	r.Post("/login", h.Login)
-	r.Post("/refresh", h.Refresh)
+
+	// auth protected
+	r.Group(func(r chi.Router) {
+		r.Use(h.authMiddleware)
+
+		r.Post("/refresh", h.Refresh)
+	})
 
 	return r
 }
@@ -32,7 +48,7 @@ func (h *AuthHandler) RoutesV1() http.Handler {
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var createSessionDto dto.CreateSessionDto
 	if err := json.NewDecoder(r.Body).Decode(&createSessionDto); err != nil {
-		helper.WriteError(w, http.StatusBadRequest, "invalid request body")
+		response.WriteError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -44,7 +60,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	access, refresh, err := h.service.Login(createSession)
 	if err != nil {
 		slog.Error("failed to login", slog.Any("error", err))
-		helper.WriteError(w, http.StatusBadRequest, "failed to login")
+		response.WriteError(w, http.StatusBadRequest, "failed to login")
 		return
 	}
 
@@ -53,13 +69,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Refresh: refresh,
 	}
 
-	helper.WriteJSON(w, http.StatusCreated, tokensDto)
+	response.WriteJSON(w, http.StatusCreated, tokensDto)
 }
 
 func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	var refreshSessionDto dto.RefreshSessionDto
 	if err := json.NewDecoder(r.Body).Decode(&refreshSessionDto); err != nil {
-		helper.WriteError(w, http.StatusBadRequest, "invalid request body")
+		response.WriteError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
@@ -69,7 +85,7 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 
 	access, refresh, err := h.service.Refresh(refreshSession)
 	if err != nil {
-		helper.WriteError(w, http.StatusBadRequest, "failed to login")
+		response.WriteError(w, http.StatusBadRequest, "failed to login")
 		return
 	}
 
@@ -78,5 +94,5 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		Refresh: refresh,
 	}
 
-	helper.WriteJSON(w, http.StatusCreated, tokensDto)
+	response.WriteJSON(w, http.StatusCreated, tokensDto)
 }
