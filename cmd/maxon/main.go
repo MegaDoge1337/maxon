@@ -12,6 +12,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/megadoge1337/maxon/internal/handler"
 	"github.com/megadoge1337/maxon/internal/infrastructure"
+	maxonmw "github.com/megadoge1337/maxon/internal/middleware"
 	"github.com/megadoge1337/maxon/internal/repository"
 	"github.com/megadoge1337/maxon/internal/service"
 	"github.com/pressly/goose/v3"
@@ -101,13 +102,16 @@ func main() {
 	slog.Info("migrations completed successfully")
 
 	var userRepo repository.UserRepository = infrastructure.NewSqlBoilerUserRepository(db)
-	authRepo := repository.NewAuthRepository(db)
+	var authRepo repository.AuthRepository = infrastructure.NewSqlBoilerAuthRepository(db)
 
-	userService := service.NewUserService(userRepo)
-	authService := service.NewAuthService(authRepo, userRepo, environment.GetString("JWT_SECRET"))
-
-	userHandler := handler.NewUserHandler(userService)
-	authHandler := handler.NewAuthHandler(authService)
+	userService := service.NewUserService(service.UserSerivceDeps{UserRepo: userRepo})
+	authService := service.NewAuthService(service.AuthSerivceDeps{
+		AuthRepo: authRepo,
+		UserRepo: userRepo,
+		Config: service.AuthServiceConfig{
+			JwtSecret: environment.GetString("JWT_SECRET"),
+		},
+	})
 
 	router := chi.NewRouter()
 
@@ -116,19 +120,17 @@ func main() {
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
 
+	authMiddleware := maxonmw.AuthMiddleware(environment.GetString("JWT_SECRET"))
+
+	userHandler := handler.NewUserHandler(handler.UserHandlerDeps{UserService: *userService, AuthMiddleware: authMiddleware})
+	authHandler := handler.NewAuthHandler(handler.AuthHandlerDeps{AuthService: *authService, AuthMiddleware: authMiddleware})
+
 	// api routes
 	router.Route("/api", func(r chi.Router) {
 		// v1 routes
 		r.Route("/v1", func(r chi.Router) {
-			// public
 			r.Mount("/auth", authHandler.RoutesV1())
 			r.Mount("/users", userHandler.RoutesV1())
-
-			// auth protected
-			// r.Group(func(r chi.Router) {
-			// 	r.Use(maxonmw.AuthMiddleware(environment.GetString("JWT_SECRET")))
-			// 	r.Mount("/users", userHandler.RoutesV1())
-			// })
 		})
 	})
 
