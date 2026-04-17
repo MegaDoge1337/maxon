@@ -57,7 +57,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Password: createSessionDto.Password,
 	}
 
-	access, refresh, err := h.service.Login(createSession)
+	access, refresh, err := h.service.Login(r.Context(), createSession)
 	if err != nil {
 		slog.Error("failed to login", slog.Any("error", err))
 		response.WriteError(w, http.StatusBadRequest, "failed to login")
@@ -83,7 +83,7 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		Refresh: refreshSessionDto.Refresh,
 	}
 
-	access, refresh, err := h.service.Refresh(refreshSession)
+	access, refresh, err := h.service.Refresh(r.Context(), refreshSession)
 	if err != nil {
 		response.WriteError(w, http.StatusBadRequest, "failed to login")
 		return

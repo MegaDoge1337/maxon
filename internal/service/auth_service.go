@@ -36,10 +36,7 @@ func NewAuthService(deps AuthSerivceDeps) *AuthService {
 	}
 }
 
-func (s *AuthService) Login(createSessionCommand domain.CreateSessionCommand) (acess string, refresh string, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
+func (s *AuthService) Login(ctx context.Context, createSessionCommand domain.CreateSessionCommand) (acess string, refresh string, err error) {
 	user, err := s.userRepo.GetByUsername(ctx, createSessionCommand.Login)
 	if err != nil {
 		return "", "", err
@@ -73,10 +70,7 @@ func (s *AuthService) Login(createSessionCommand domain.CreateSessionCommand) (a
 	return access, refresh, nil
 }
 
-func (s *AuthService) Refresh(refreshSessionCommand domain.RefreshSessionCommand) (acess string, refresh string, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
+func (s *AuthService) Refresh(ctx context.Context, refreshSessionCommand domain.RefreshSessionCommand) (acess string, refresh string, err error) {
 	session, err := s.authRepo.GetById(ctx, refreshSessionCommand.Refresh)
 	if err != nil {
 		return "", "", err
