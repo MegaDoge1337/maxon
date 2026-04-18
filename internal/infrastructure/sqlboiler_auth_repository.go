@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	models "megadoge1337/maxon/gen"
 	"megadoge1337/maxon/internal/domain"
-	"megadoge1337/maxon/models"
 
 	"github.com/aarondl/sqlboiler/v4/boil"
 )
