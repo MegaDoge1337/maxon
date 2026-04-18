@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 
+	"megadoge1337/maxon/internal/domain"
+	"megadoge1337/maxon/models"
+
 	"github.com/aarondl/sqlboiler/v4/boil"
-	"github.com/megadoge1337/maxon/internal/domain"
-	"github.com/megadoge1337/maxon/models"
 )
 
 type SqlBoilerAuthRepository struct {

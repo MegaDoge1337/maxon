@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/megadoge1337/maxon/internal/domain"
+	"megadoge1337/maxon/internal/domain"
 )
 
 type UserRepository interface {

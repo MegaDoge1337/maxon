@@ -5,11 +5,12 @@ import (
 	"log/slog"
 	"net/http"
 
+	"megadoge1337/maxon/internal/domain"
+	"megadoge1337/maxon/internal/dto"
+	"megadoge1337/maxon/internal/service"
+	"megadoge1337/maxon/pkg/response"
+
 	"github.com/go-chi/chi/v5"
-	"github.com/megadoge1337/maxon/internal/domain"
-	"github.com/megadoge1337/maxon/internal/dto"
-	"github.com/megadoge1337/maxon/internal/service"
-	"github.com/megadoge1337/maxon/pkg/response"
 )
 
 type AuthHandlerDeps struct {

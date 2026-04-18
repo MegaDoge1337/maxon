@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 
+	"megadoge1337/maxon/internal/domain"
+	"megadoge1337/maxon/models"
+
 	"github.com/aarondl/null/v8"
 	"github.com/aarondl/sqlboiler/v4/boil"
 	"github.com/aarondl/sqlboiler/v4/queries/qm"
-	"github.com/megadoge1337/maxon/internal/domain"
-	"github.com/megadoge1337/maxon/models"
 )
 
 type SqlBoilerUserRepository struct {

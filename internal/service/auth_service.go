@@ -6,9 +6,10 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/megadoge1337/maxon/internal/domain"
-	"github.com/megadoge1337/maxon/internal/repository"
-	"github.com/megadoge1337/maxon/pkg/jwt"
+	"megadoge1337/maxon/internal/domain"
+	"megadoge1337/maxon/internal/repository"
+	"megadoge1337/maxon/pkg/jwt"
+
 	"golang.org/x/crypto/bcrypt"
 )
 

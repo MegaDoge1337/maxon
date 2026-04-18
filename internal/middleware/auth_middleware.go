@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/megadoge1337/maxon/pkg/jwt"
+	"megadoge1337/maxon/pkg/jwt"
 )
 
 type contextKey string

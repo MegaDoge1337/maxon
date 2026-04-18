@@ -4,8 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/megadoge1337/maxon/internal/domain"
-	"github.com/megadoge1337/maxon/internal/repository"
+	"megadoge1337/maxon/internal/domain"
+	"megadoge1337/maxon/internal/repository"
+
 	"golang.org/x/crypto/bcrypt"
 )
 

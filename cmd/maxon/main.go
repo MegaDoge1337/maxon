@@ -7,14 +7,15 @@ import (
 	"os"
 	"time"
 
+	"megadoge1337/maxon/internal/handler"
+	"megadoge1337/maxon/internal/infrastructure"
+	maxonmw "megadoge1337/maxon/internal/middleware"
+	"megadoge1337/maxon/internal/repository"
+	"megadoge1337/maxon/internal/service"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/megadoge1337/maxon/internal/handler"
-	"github.com/megadoge1337/maxon/internal/infrastructure"
-	maxonmw "github.com/megadoge1337/maxon/internal/middleware"
-	"github.com/megadoge1337/maxon/internal/repository"
-	"github.com/megadoge1337/maxon/internal/service"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/viper"
 )

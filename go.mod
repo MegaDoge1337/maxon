@@ -1,4 +1,4 @@
-module github.com/megadoge1337/maxon
+module megadoge1337/maxon
 
 go 1.25.6
 
