@@ -95,7 +95,7 @@ func (s *UserService) UpdateById(updateUserCommand domain.UpdateUserCommand, id 
 		user.Password = hashedPassword
 	}
 
-	updateUser, err := s.repo.UpdateById(ctx, *user)
+	updateUser, err := s.repo.Update(ctx, *user)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (s *UserService) DeleteById(id int) (*domain.User, error) {
 		return nil, err
 	}
 
-	deleteUser, err := s.repo.DeleteById(ctx, *user)
+	deleteUser, err := s.repo.Delete(ctx, *user)
 	if err != nil {
 		return nil, err
 	}

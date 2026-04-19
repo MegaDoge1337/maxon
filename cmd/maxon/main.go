@@ -12,6 +12,7 @@ import (
 	maxonmw "megadoge1337/maxon/internal/middleware"
 	"megadoge1337/maxon/internal/repository"
 	"megadoge1337/maxon/internal/service"
+	"megadoge1337/maxon/internal/usecase/user"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -105,7 +106,6 @@ func main() {
 	var userRepo repository.UserRepository = infrastructure.NewSqlBoilerUserRepository(db)
 	var authRepo repository.AuthRepository = infrastructure.NewSqlBoilerAuthRepository(db)
 
-	userService := service.NewUserService(service.UserSerivceDeps{UserRepo: userRepo})
 	authService := service.NewAuthService(service.AuthSerivceDeps{
 		AuthRepo: authRepo,
 		UserRepo: userRepo,
@@ -123,7 +123,15 @@ func main() {
 
 	authMiddleware := maxonmw.AuthMiddleware(environment.GetString("JWT_SECRET"))
 
-	userHandler := handler.NewUserHandler(handler.UserHandlerDeps{UserService: *userService, AuthMiddleware: authMiddleware})
+	userHandler := handler.NewUserHandler(handler.UserHandlerDeps{
+		GetAllUC:        user.NewGetAllUsersUseCase(userRepo),
+		GetByIdUC:       user.NewGetUserByIdUseCase(userRepo),
+		GetByUsernameUC: user.NewGetUserByUsernameUseCase(userRepo),
+		CreateUC:        user.NewCreateUserUseCase(userRepo),
+		UpdateUC:        user.NewUpdateUserUseCase(userRepo),
+		DeleteUC:        user.NewDeleteUserUseCase(userRepo),
+		AuthMiddleware:  authMiddleware,
+	})
 	authHandler := handler.NewAuthHandler(handler.AuthHandlerDeps{AuthService: *authService, AuthMiddleware: authMiddleware})
 
 	// api routes

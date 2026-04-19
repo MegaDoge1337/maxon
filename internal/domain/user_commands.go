@@ -17,5 +17,6 @@ func (cu *CreateUserCommand) ToDomain() User {
 	return User{
 		Username: cu.Username,
 		Email:    cu.Email,
+		Password: cu.Password,
 	}
 }

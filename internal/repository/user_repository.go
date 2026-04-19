@@ -11,6 +11,6 @@ type UserRepository interface {
 	GetAll(ctx context.Context) ([]domain.User, error)
 	GetById(ctx context.Context, id int) (*domain.User, error)
 	GetByUsername(ctx context.Context, username string) (*domain.User, error)
-	UpdateById(ctx context.Context, userDomain domain.User) (*domain.User, error)
-	DeleteById(ctx context.Context, userDomain domain.User) (*domain.User, error)
+	Update(ctx context.Context, userDomain domain.User) (*domain.User, error)
+	Delete(ctx context.Context, userDomain domain.User) (*domain.User, error)
 }

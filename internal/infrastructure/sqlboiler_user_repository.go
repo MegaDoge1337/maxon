@@ -94,7 +94,7 @@ func (r *SqlBoilerUserRepository) GetByUsername(ctx context.Context, username st
 	return &userDomain, nil
 }
 
-func (r *SqlBoilerUserRepository) UpdateById(ctx context.Context, userDomain domain.User) (*domain.User, error) {
+func (r *SqlBoilerUserRepository) Update(ctx context.Context, userDomain domain.User) (*domain.User, error) {
 	userModel := userDomainToModel(userDomain)
 	_, err := userModel.Update(ctx, r.db, boil.Infer())
 	if err != nil {
@@ -104,7 +104,7 @@ func (r *SqlBoilerUserRepository) UpdateById(ctx context.Context, userDomain dom
 	return &userDomain, nil
 }
 
-func (r *SqlBoilerUserRepository) DeleteById(ctx context.Context, userDomain domain.User) (*domain.User, error) {
+func (r *SqlBoilerUserRepository) Delete(ctx context.Context, userDomain domain.User) (*domain.User, error) {
 	userModel := userDomainToModel(userDomain)
 	_, err := userModel.Delete(ctx, r.db)
 	if err != nil {

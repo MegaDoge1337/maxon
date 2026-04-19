@@ -7,26 +7,41 @@ import (
 
 	"megadoge1337/maxon/internal/domain"
 	"megadoge1337/maxon/internal/dto"
-	"megadoge1337/maxon/internal/service"
+	"megadoge1337/maxon/internal/usecase/user"
 	"megadoge1337/maxon/pkg/response"
 
 	"github.com/go-chi/chi/v5"
 )
 
 type UserHandlerDeps struct {
-	UserService    service.UserService
-	AuthMiddleware func(http.Handler) http.Handler
+	GetAllUC        user.AllUsersGetter
+	GetByIdUC       user.UserByIdGetter
+	GetByUsernameUC user.UserByUsernameGetter
+	CreateUC        user.UserCreator
+	UpdateUC        user.UserUpdater
+	DeleteUC        user.UserDeleter
+	AuthMiddleware  func(http.Handler) http.Handler
 }
 
 type UserHandler struct {
-	service        service.UserService
-	authMiddleware func(http.Handler) http.Handler
+	getAllUC        user.AllUsersGetter
+	getByIdUC       user.UserByIdGetter
+	getByUsernameUC user.UserByUsernameGetter
+	createUC        user.UserCreator
+	updateUC        user.UserUpdater
+	deleteUC        user.UserDeleter
+	authMiddleware  func(http.Handler) http.Handler
 }
 
 func NewUserHandler(deps UserHandlerDeps) *UserHandler {
 	return &UserHandler{
-		service:        deps.UserService,
-		authMiddleware: deps.AuthMiddleware,
+		getAllUC:        deps.GetAllUC,
+		getByIdUC:       deps.GetByIdUC,
+		getByUsernameUC: deps.GetByUsernameUC,
+		createUC:        deps.CreateUC,
+		updateUC:        deps.UpdateUC,
+		deleteUC:        deps.DeleteUC,
+		authMiddleware:  deps.AuthMiddleware,
 	}
 }
 
@@ -51,7 +66,7 @@ func (h *UserHandler) RoutesV1() http.Handler {
 }
 
 func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	users, err := h.service.GetAll(r.Context())
+	users, err := h.getAllUC.Execute(r.Context())
 	if err != nil {
 		slog.Error("GetAll failed", slog.Any("error", err))
 		response.WriteError(w, http.StatusInternalServerError, "failed to get users")
@@ -79,7 +94,7 @@ func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.GetById(r.Context(), id)
+	user, err := h.getByIdUC.Execute(r.Context(), id)
 	if err != nil {
 		slog.Error("GetById failed", slog.Int("id", id), slog.Any("error", err))
 		response.WriteError(w, http.StatusNotFound, "user not found")
@@ -99,7 +114,7 @@ func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) GetByUsername(w http.ResponseWriter, r *http.Request) {
 	username := chi.URLParam(r, "username")
 
-	user, err := h.service.GetByUsername(r.Context(), username)
+	user, err := h.getByUsernameUC.Execute(r.Context(), username)
 	if err != nil {
 		slog.Error("GetByUsername failed", slog.String("username", username), slog.Any("error", err))
 		response.WriteError(w, http.StatusNotFound, "user not found")
@@ -129,7 +144,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		Password: createUserDto.Password,
 	}
 
-	newUser, err := h.service.Create(r.Context(), createUser)
+	newUser, err := h.createUC.Execute(r.Context(), createUser)
 	if err != nil {
 		slog.Error("Create failed", slog.Any("error", err))
 		response.WriteError(w, http.StatusInternalServerError, "failed to create user")
@@ -166,7 +181,7 @@ func (h *UserHandler) UpdateById(w http.ResponseWriter, r *http.Request) {
 		NewPassword: updateUserDto.NewPassword,
 	}
 
-	user, err := h.service.UpdateById(updateUserCommand, id)
+	user, err := h.updateUC.Execute(r.Context(), updateUserCommand, id)
 	if err != nil {
 		slog.Error("Update failed", slog.Int("id", id), slog.Any("error", err))
 		response.WriteError(w, http.StatusInternalServerError, "failed to update user")
@@ -190,7 +205,7 @@ func (h *UserHandler) DeleteById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.DeleteById(id)
+	user, err := h.deleteUC.Execute(r.Context(), id)
 	if err != nil {
 		slog.Error("DeleteById failed", slog.Int("id", id), slog.Any("error", err))
 		response.WriteError(w, http.StatusInternalServerError, "failed to delete user")
