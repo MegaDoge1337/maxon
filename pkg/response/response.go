@@ -4,12 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"strconv"
 )
-
-func ParseID(s string) (int, error) {
-	return strconv.Atoi(s)
-}
 
 func WriteJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
