@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"megadoge1337/maxon/pkg/jwt"
+	"megadoge1337/maxon/pkg/response"
 )
 
 type contextKey string
@@ -18,19 +19,19 @@ func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {
 			header := r.Header.Get("Authorization")
 
 			if header == "" {
-				http.Error(w, "Missing token", http.StatusUnauthorized)
+				response.WriteError(w, http.StatusUnauthorized, "missing token")
 				return
 			}
 
 			parts := strings.Split(header, " ")
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				http.Error(w, "Invalid token format", http.StatusUnauthorized)
+				response.WriteError(w, http.StatusUnauthorized, "invalid token format")
 				return
 			}
 
 			claims, err := jwt.ParseToken(parts[1], jwtSecret)
 			if err != nil {
-				http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+				response.WriteError(w, http.StatusUnauthorized, "invalid or expired token")
 				return
 			}
 
