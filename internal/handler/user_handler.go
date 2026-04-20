@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"megadoge1337/maxon/internal/domain"
 	"megadoge1337/maxon/internal/dto"
@@ -88,7 +89,7 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetById(w http.ResponseWriter, r *http.Request) {
-	id, err := response.ParseID(chi.URLParam(r, "id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		response.WriteError(w, http.StatusBadRequest, "invalid id")
 		return
@@ -162,7 +163,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) UpdateById(w http.ResponseWriter, r *http.Request) {
-	id, err := response.ParseID(chi.URLParam(r, "id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		response.WriteError(w, http.StatusBadRequest, "invalid id")
 		return
@@ -199,7 +200,7 @@ func (h *UserHandler) UpdateById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) DeleteById(w http.ResponseWriter, r *http.Request) {
-	id, err := response.ParseID(chi.URLParam(r, "id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		response.WriteError(w, http.StatusBadRequest, "invalid id")
 		return
