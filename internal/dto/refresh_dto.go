@@ -1,5 +1,5 @@
 package dto
 
-type RefreshSessionDto struct {
+type RefreshDto struct {
 	Refresh string `json:"refresh"`
 }
