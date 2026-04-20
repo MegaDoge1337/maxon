@@ -11,7 +11,7 @@ import (
 	"megadoge1337/maxon/internal/infrastructure"
 	maxonmw "megadoge1337/maxon/internal/middleware"
 	"megadoge1337/maxon/internal/repository"
-	"megadoge1337/maxon/internal/service"
+	"megadoge1337/maxon/internal/usecase/auth"
 	"megadoge1337/maxon/internal/usecase/user"
 
 	"github.com/go-chi/chi/v5"
@@ -106,14 +106,6 @@ func main() {
 	var userRepo repository.UserRepository = infrastructure.NewSqlBoilerUserRepository(db)
 	var authRepo repository.AuthRepository = infrastructure.NewSqlBoilerAuthRepository(db)
 
-	authService := service.NewAuthService(service.AuthSerivceDeps{
-		AuthRepo: authRepo,
-		UserRepo: userRepo,
-		Config: service.AuthServiceConfig{
-			JwtSecret: environment.GetString("JWT_SECRET"),
-		},
-	})
-
 	router := chi.NewRouter()
 
 	router.Use(middleware.Logger)
@@ -132,7 +124,32 @@ func main() {
 		DeleteUC:        user.NewDeleteUserUseCase(userRepo),
 		AuthMiddleware:  authMiddleware,
 	})
-	authHandler := handler.NewAuthHandler(handler.AuthHandlerDeps{AuthService: *authService, AuthMiddleware: authMiddleware})
+	authHandler := handler.NewAuthHandler(handler.AuthHandlerDeps{
+		LoginUC: auth.NewLoginUseCase(
+			auth.LoginUseCaseDeps{
+				AuthRepo: authRepo,
+				UserRepo: userRepo,
+				Config: auth.LoginUseCaseConfig{
+					JwtSecret: environment.GetString("JWT_SECRET"),
+				},
+			},
+		),
+		RegisterUC: auth.NewRegisterUseCase(
+			auth.RegisterUseCaseDeps{
+				AuthRepo: authRepo,
+				UserRepo: userRepo,
+			},
+		),
+		RefreshUC: auth.NewRefreshUseCase(
+			auth.RefreshUseCaseDeps{
+				Repo: authRepo,
+				Config: auth.RefreshUseCaseConfig{
+					JwtSecret: environment.GetString("JWT_SECRET"),
+				},
+			},
+		),
+		AuthMiddleware: authMiddleware,
+	})
 
 	// api routes
 	router.Route("/api", func(r chi.Router) {
