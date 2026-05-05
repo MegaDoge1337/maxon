@@ -11,17 +11,20 @@ import (
 type RegisterUseCaseDeps struct {
 	AuthRepo repository.AuthRepository
 	UserRepo repository.UserRepository
+	RoleRepo repository.RoleRepository
 }
 
 type RegisterUseCase struct {
 	authRepo repository.AuthRepository
 	userRepo repository.UserRepository
+	roleRepo repository.RoleRepository
 }
 
 func NewRegisterUseCase(deps RegisterUseCaseDeps) *RegisterUseCase {
 	return &RegisterUseCase{
 		authRepo: deps.AuthRepo,
 		userRepo: deps.UserRepo,
+		roleRepo: deps.RoleRepo,
 	}
 }
 
@@ -55,6 +58,16 @@ func (r *RegisterUseCase) Execute(ctx context.Context, registerCommand domain.Re
 	}
 
 	newUser, err := r.userRepo.Create(ctx, userDomain)
+	if err != nil {
+		return nil, err
+	}
+
+	roleDomain := domain.Role{
+		UserId: newUser.ID,
+		Name:   domain.RolesRegistry["user"],
+	}
+
+	_, err = r.roleRepo.Create(ctx, roleDomain)
 	if err != nil {
 		return nil, err
 	}

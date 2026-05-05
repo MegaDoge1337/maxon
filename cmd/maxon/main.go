@@ -105,6 +105,7 @@ func main() {
 
 	var userRepo repository.UserRepository = infrastructure.NewSqlBoilerUserRepository(db)
 	var authRepo repository.AuthRepository = infrastructure.NewSqlBoilerAuthRepository(db)
+	var roleRepo repository.RoleRepository = infrastructure.NewSqlBoilerRoleRepository(db)
 
 	router := chi.NewRouter()
 
@@ -114,6 +115,7 @@ func main() {
 	router.Use(middleware.RealIP)
 
 	authMiddleware := maxonmw.AuthMiddleware(environment.GetString("JWT_SECRET"))
+	adminMiddleware := maxonmw.AdminMiddleware()
 
 	userHandler := handler.NewUserHandler(handler.UserHandlerDeps{
 		GetAllUC:        user.NewGetAllUsersUseCase(userRepo),
@@ -123,12 +125,14 @@ func main() {
 		UpdateUC:        user.NewUpdateUserUseCase(userRepo),
 		DeleteUC:        user.NewDeleteUserUseCase(userRepo),
 		AuthMiddleware:  authMiddleware,
+		AdminMiddleware: adminMiddleware,
 	})
 	authHandler := handler.NewAuthHandler(handler.AuthHandlerDeps{
 		LoginUC: auth.NewLoginUseCase(
 			auth.LoginUseCaseDeps{
 				AuthRepo: authRepo,
 				UserRepo: userRepo,
+				RoleRepo: roleRepo,
 				Config: auth.LoginUseCaseConfig{
 					JwtSecret: environment.GetString("JWT_SECRET"),
 				},
@@ -138,6 +142,7 @@ func main() {
 			auth.RegisterUseCaseDeps{
 				AuthRepo: authRepo,
 				UserRepo: userRepo,
+				RoleRepo: roleRepo,
 			},
 		),
 		RefreshUC: auth.NewRefreshUseCase(

@@ -5,6 +5,7 @@ import "time"
 type Session struct {
 	ID        string
 	UserID    int
+	Role      string
 	ExpiresAt time.Time
 	CreatedAt time.Time
 }

@@ -22,6 +22,7 @@ type UserHandlerDeps struct {
 	UpdateUC        user.UserUpdater
 	DeleteUC        user.UserDeleter
 	AuthMiddleware  func(http.Handler) http.Handler
+	AdminMiddleware func(http.Handler) http.Handler
 }
 
 type UserHandler struct {
@@ -32,6 +33,7 @@ type UserHandler struct {
 	updateUC        user.UserUpdater
 	deleteUC        user.UserDeleter
 	authMiddleware  func(http.Handler) http.Handler
+	adminMiddleware func(http.Handler) http.Handler
 }
 
 func NewUserHandler(deps UserHandlerDeps) *UserHandler {
@@ -43,6 +45,7 @@ func NewUserHandler(deps UserHandlerDeps) *UserHandler {
 		updateUC:        deps.UpdateUC,
 		deleteUC:        deps.DeleteUC,
 		authMiddleware:  deps.AuthMiddleware,
+		adminMiddleware: deps.AdminMiddleware,
 	}
 }
 
@@ -55,6 +58,7 @@ func (h *UserHandler) RoutesV1() http.Handler {
 	// auth protected
 	r.Group(func(r chi.Router) {
 		r.Use(h.authMiddleware)
+		r.Use(h.adminMiddleware)
 
 		r.Get("/", h.GetAll)
 		r.Post("/", h.Create)

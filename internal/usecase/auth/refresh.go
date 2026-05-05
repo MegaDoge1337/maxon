@@ -38,13 +38,14 @@ func (r *RefreshUseCase) Execute(ctx context.Context, refreshCommand domain.Refr
 	}
 
 	userId := session.UserID
+	role := session.Role
 
 	_, err = r.repo.DeleteById(ctx, *session)
 	if err != nil {
 		return "", "", err
 	}
 
-	access, err := jwt.GenerateAccessToken(userId, r.config.JwtSecret, 15*time.Minute)
+	access, err := jwt.GenerateAccessToken(userId, role, r.config.JwtSecret, 15*time.Minute)
 	if err != nil {
 		return "", "", err
 	}
@@ -56,6 +57,7 @@ func (r *RefreshUseCase) Execute(ctx context.Context, refreshCommand domain.Refr
 	refreshSession := domain.Session{
 		ID:        refresh,
 		UserID:    userId,
+		Role:      role,
 		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 	}
 

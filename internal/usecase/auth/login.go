@@ -19,12 +19,14 @@ type LoginUseCaseConfig struct {
 type LoginUseCaseDeps struct {
 	AuthRepo repository.AuthRepository
 	UserRepo repository.UserRepository
+	RoleRepo repository.RoleRepository
 	Config   LoginUseCaseConfig
 }
 
 type LoginUseCase struct {
 	authRepo repository.AuthRepository
 	userRepo repository.UserRepository
+	roleRepo repository.RoleRepository
 	config   LoginUseCaseConfig
 }
 
@@ -32,6 +34,7 @@ func NewLoginUseCase(deps LoginUseCaseDeps) *LoginUseCase {
 	return &LoginUseCase{
 		authRepo: deps.AuthRepo,
 		userRepo: deps.UserRepo,
+		roleRepo: deps.RoleRepo,
 		config:   deps.Config,
 	}
 }
@@ -51,7 +54,12 @@ func (l *LoginUseCase) Execute(ctx context.Context, loginCommand domain.LoginCom
 		return "", "", fmt.Errorf("user credentials are wrong")
 	}
 
-	access, err := jwt.GenerateAccessToken(user.ID, l.config.JwtSecret, 15*time.Minute)
+	role, err := l.roleRepo.GetByUserId(ctx, user.ID)
+	if err != nil {
+		return "", "", err
+	}
+
+	access, err := jwt.GenerateAccessToken(user.ID, role.Name, l.config.JwtSecret, 15*time.Minute)
 	if err != nil {
 		return "", "", err
 	}
@@ -63,6 +71,7 @@ func (l *LoginUseCase) Execute(ctx context.Context, loginCommand domain.LoginCom
 	newSession := domain.Session{
 		ID:        refresh,
 		UserID:    user.ID,
+		Role:      role.Name,
 		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 	}
 
