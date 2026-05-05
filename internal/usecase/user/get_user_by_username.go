@@ -16,8 +16,8 @@ func NewGetUserByUsernameUseCase(r repository.UserRepository) *GetUserByUsername
 	}
 }
 
-func (ubug *GetUserByUsernameUseCase) Execute(ctx context.Context, username string) (*domain.User, error) {
-	user, err := ubug.repo.GetByUsername(ctx, username)
+func (uc *GetUserByUsernameUseCase) Execute(ctx context.Context, username string) (*domain.User, error) {
+	user, err := uc.repo.GetByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}

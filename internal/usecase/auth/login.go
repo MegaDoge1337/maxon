@@ -39,8 +39,8 @@ func NewLoginUseCase(deps LoginUseCaseDeps) *LoginUseCase {
 	}
 }
 
-func (l *LoginUseCase) Execute(ctx context.Context, loginCommand domain.LoginCommand) (acess string, refresh string, err error) {
-	user, err := l.userRepo.GetByUsername(ctx, loginCommand.Username)
+func (uc *LoginUseCase) Execute(ctx context.Context, loginCommand domain.LoginCommand) (acess string, refresh string, err error) {
+	user, err := uc.userRepo.GetByUsername(ctx, loginCommand.Username)
 	if err != nil {
 		return "", "", err
 	}
@@ -54,12 +54,12 @@ func (l *LoginUseCase) Execute(ctx context.Context, loginCommand domain.LoginCom
 		return "", "", fmt.Errorf("user credentials are wrong")
 	}
 
-	role, err := l.roleRepo.GetByUserId(ctx, user.ID)
+	role, err := uc.roleRepo.GetByUserId(ctx, user.ID)
 	if err != nil {
 		return "", "", err
 	}
 
-	access, err := jwt.GenerateAccessToken(user.ID, role.Name, l.config.JwtSecret, 15*time.Minute)
+	access, err := jwt.GenerateAccessToken(user.ID, role.Name, uc.config.JwtSecret, 15*time.Minute)
 	if err != nil {
 		return "", "", err
 	}
@@ -75,7 +75,7 @@ func (l *LoginUseCase) Execute(ctx context.Context, loginCommand domain.LoginCom
 		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 	}
 
-	_, err = l.authRepo.Create(ctx, newSession)
+	_, err = uc.authRepo.Create(ctx, newSession)
 	if err != nil {
 		return "", "", err
 	}

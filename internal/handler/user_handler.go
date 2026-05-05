@@ -15,23 +15,23 @@ import (
 )
 
 type UserHandlerDeps struct {
-	GetAllUC        user.AllUsersGetter
-	GetByIdUC       user.UserByIdGetter
-	GetByUsernameUC user.UserByUsernameGetter
-	CreateUC        user.UserCreator
-	UpdateUC        user.UserUpdater
-	DeleteUC        user.UserDeleter
+	GetAllUC        user.GetAllUsers
+	GetByIdUC       user.GetUserById
+	GetByUsernameUC user.GetUserByUsername
+	CreateUC        user.CreateUser
+	UpdateUC        user.UpdateUser
+	DeleteUC        user.DeleteUser
 	AuthMiddleware  func(http.Handler) http.Handler
 	AdminMiddleware func(http.Handler) http.Handler
 }
 
 type UserHandler struct {
-	getAllUC        user.AllUsersGetter
-	getByIdUC       user.UserByIdGetter
-	getByUsernameUC user.UserByUsernameGetter
-	createUC        user.UserCreator
-	updateUC        user.UserUpdater
-	deleteUC        user.UserDeleter
+	getAllUC        user.GetAllUsers
+	getByIdUC       user.GetUserById
+	getByUsernameUC user.GetUserByUsername
+	createUC        user.CreateUser
+	updateUC        user.UpdateUser
+	deleteUC        user.DeleteUser
 	authMiddleware  func(http.Handler) http.Handler
 	adminMiddleware func(http.Handler) http.Handler
 }

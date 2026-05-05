@@ -16,8 +16,8 @@ func NewGetUserByIdUseCase(r repository.UserRepository) *GetUserByIdUseCase {
 	}
 }
 
-func (ubig *GetUserByIdUseCase) Execute(ctx context.Context, id int) (*domain.User, error) {
-	user, err := ubig.repo.GetById(ctx, id)
+func (uc *GetUserByIdUseCase) Execute(ctx context.Context, id int) (*domain.User, error) {
+	user, err := uc.repo.GetById(ctx, id)
 	if err != nil {
 		return nil, err
 	}

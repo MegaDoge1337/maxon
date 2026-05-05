@@ -18,15 +18,15 @@ func NewUpdateUserUseCase(r repository.UserRepository) *UpdateUserUseCase {
 	}
 }
 
-func (uu UpdateUserUseCase) Execute(ctx context.Context, updateUserCommand domain.UpdateUserCommand, id int) (*domain.User, error) {
+func (uc UpdateUserUseCase) Execute(ctx context.Context, updateUserCommand domain.UpdateUserCommand, id int) (*domain.User, error) {
 	// get updated user
-	updateUser, err := uu.repo.GetById(ctx, id)
+	updateUser, err := uc.repo.GetById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	// search via username
-	existingUser, _ := uu.repo.GetByUsername(ctx, updateUserCommand.Username)
+	existingUser, _ := uc.repo.GetByUsername(ctx, updateUserCommand.Username)
 	// if finded enties are same
 	if existingUser != nil && existingUser.ID != id {
 		return nil, fmt.Errorf("user with same username already exists")
@@ -65,7 +65,7 @@ func (uu UpdateUserUseCase) Execute(ctx context.Context, updateUserCommand domai
 	}
 
 	// make update
-	updateUser, err = uu.repo.Update(ctx, *updateUser)
+	updateUser, err = uc.repo.Update(ctx, *updateUser)
 	if err != nil {
 		return nil, err
 	}

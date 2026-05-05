@@ -28,7 +28,7 @@ func NewRegisterUseCase(deps RegisterUseCaseDeps) *RegisterUseCase {
 	}
 }
 
-func (r *RegisterUseCase) Execute(ctx context.Context, registerCommand domain.RegisterCommand) (*domain.User, error) {
+func (uc *RegisterUseCase) Execute(ctx context.Context, registerCommand domain.RegisterCommand) (*domain.User, error) {
 	if registerCommand.Username == "" {
 		return nil, fmt.Errorf("username cannot be empty")
 	}
@@ -41,7 +41,7 @@ func (r *RegisterUseCase) Execute(ctx context.Context, registerCommand domain.Re
 		return nil, fmt.Errorf("email cannot be empty")
 	}
 
-	existingUser, _ := r.userRepo.GetByUsername(ctx, registerCommand.Username)
+	existingUser, _ := uc.userRepo.GetByUsername(ctx, registerCommand.Username)
 	if existingUser != nil {
 		return nil, fmt.Errorf("user with same username already exists")
 	}
@@ -57,7 +57,7 @@ func (r *RegisterUseCase) Execute(ctx context.Context, registerCommand domain.Re
 		Password: hashedPassword,
 	}
 
-	newUser, err := r.userRepo.Create(ctx, userDomain)
+	newUser, err := uc.userRepo.Create(ctx, userDomain)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (r *RegisterUseCase) Execute(ctx context.Context, registerCommand domain.Re
 		Name:   domain.RolesRegistry["user"],
 	}
 
-	_, err = r.roleRepo.Create(ctx, roleDomain)
+	_, err = uc.roleRepo.Create(ctx, roleDomain)
 	if err != nil {
 		return nil, err
 	}

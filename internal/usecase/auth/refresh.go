@@ -31,8 +31,8 @@ func NewRefreshUseCase(deps RefreshUseCaseDeps) *RefreshUseCase {
 	}
 }
 
-func (r *RefreshUseCase) Execute(ctx context.Context, refreshCommand domain.RefreshCommand) (acess string, refresh string, err error) {
-	session, err := r.repo.GetById(ctx, refreshCommand.Refresh)
+func (uc *RefreshUseCase) Execute(ctx context.Context, refreshCommand domain.RefreshCommand) (acess string, refresh string, err error) {
+	session, err := uc.repo.GetById(ctx, refreshCommand.Refresh)
 	if err != nil {
 		return "", "", err
 	}
@@ -40,12 +40,12 @@ func (r *RefreshUseCase) Execute(ctx context.Context, refreshCommand domain.Refr
 	userId := session.UserID
 	role := session.Role
 
-	_, err = r.repo.DeleteById(ctx, *session)
+	_, err = uc.repo.DeleteById(ctx, *session)
 	if err != nil {
 		return "", "", err
 	}
 
-	access, err := jwt.GenerateAccessToken(userId, role, r.config.JwtSecret, 15*time.Minute)
+	access, err := jwt.GenerateAccessToken(userId, role, uc.config.JwtSecret, 15*time.Minute)
 	if err != nil {
 		return "", "", err
 	}
@@ -61,7 +61,7 @@ func (r *RefreshUseCase) Execute(ctx context.Context, refreshCommand domain.Refr
 		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 	}
 
-	_, err = r.repo.Create(ctx, refreshSession)
+	_, err = uc.repo.Create(ctx, refreshSession)
 	if err != nil {
 		return "", "", err
 	}

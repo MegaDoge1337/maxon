@@ -16,6 +16,6 @@ func NewGetAllUsersUseCase(r repository.UserRepository) *GetAllUsersUseCase {
 	}
 }
 
-func (aug *GetAllUsersUseCase) Execute(ctx context.Context) ([]domain.User, error) {
-	return aug.repo.GetAll(ctx)
+func (uc *GetAllUsersUseCase) Execute(ctx context.Context) ([]domain.User, error) {
+	return uc.repo.GetAll(ctx)
 }

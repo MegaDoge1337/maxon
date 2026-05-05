@@ -16,13 +16,13 @@ func NewDeleteUserUseCase(r repository.UserRepository) *DeleteUserUseCase {
 	}
 }
 
-func (ud *DeleteUserUseCase) Execute(ctx context.Context, id int) (*domain.User, error) {
-	user, err := ud.repo.GetById(ctx, id)
+func (uc *DeleteUserUseCase) Execute(ctx context.Context, id int) (*domain.User, error) {
+	user, err := uc.repo.GetById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	deleteUser, err := ud.repo.Delete(ctx, *user)
+	deleteUser, err := uc.repo.Delete(ctx, *user)
 	if err != nil {
 		return nil, err
 	}
