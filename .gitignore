@@ -39,5 +39,4 @@ go.work.sum
 sqlboiler.toml
 
 # AI tools
-QWEN.md
-qwen/
+docs_ai/
