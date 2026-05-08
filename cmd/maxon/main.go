@@ -1,12 +1,13 @@
 package main
 
 import (
-	"database/sql"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
 
+	"megadoge1337/maxon/internal/config"
 	"megadoge1337/maxon/internal/handler"
 	"megadoge1337/maxon/internal/infrastructure"
 	maxonmw "megadoge1337/maxon/internal/middleware"
@@ -18,7 +19,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -39,58 +39,36 @@ type HTTPServer struct {
 }
 
 func main() {
-	// read configs
-	viperConfig := viper.New()
-	viperConfig.SetConfigType("yaml")
-	viperConfig.SetConfigFile("./config/config.yml")
-	if err := viperConfig.ReadInConfig(); err != nil {
-		slog.Error("failed to read config file", slog.Any("error", err))
-		os.Exit(1)
-	}
+	var cfg config.Config
 
-	// unmarshal config into struct
-	var cfg Config
-	if err := viperConfig.Unmarshal(&cfg); err != nil {
-		slog.Error("failed to unmarshal config", slog.Any("error", err))
-		os.Exit(1)
-	}
-
-	// setup logger based on mode from config
-	mode := viperConfig.GetString("mode")
-	setupLogger(mode)
-	slog.Info("setup logger", slog.String("mode", mode))
-	slog.Info("loaded config",
-		slog.String("http_address", cfg.HTTPServer.Address),
-		slog.Duration("timeout", cfg.HTTPServer.Timeout),
-		slog.Duration("idle_timeout", cfg.HTTPServer.IdleTimeout))
-
-	// read environment variables
-	environment := viper.New()
-	environment.SetConfigType("env")
-	environment.SetConfigFile(viperConfig.GetString("env"))
-	if err := environment.ReadInConfig(); err != nil {
-		slog.Error("failed to read env file", slog.Any("error", err))
-		os.Exit(1)
-	}
-
-	// open db connection
-	db, err := sql.Open("pgx", environment.GetString("DBINFO"))
+	err := config.LoadConfig(&cfg)
 	if err != nil {
-		slog.Error("failed to open database connection", slog.Any("error", err))
+		slog.Error("failed to load config", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	setupLogger(cfg.Mode)
+	slog.Info("setup logger", slog.String("mode", cfg.Mode))
+
+	driver := cfg.Database.Driver
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		cfg.Database.Host,
+		cfg.Database.Port,
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Name,
+		cfg.Database.SslMode)
+
+	db, err := infrastructure.NewPostgresConnection(driver, dsn)
+	if err != nil {
+		slog.Error("failed to create new postgres connection", slog.Any("error", err))
 		os.Exit(1)
 	}
 	defer db.Close()
 
-	// test database connection
-	if err := db.Ping(); err != nil {
-		slog.Error("failed to ping database", slog.Any("error", err))
-		os.Exit(1)
-	}
-	slog.Info("database connection established")
-
 	// migrate tables
 	goose.SetBaseFS(nil)
-	goose.SetTableName(environment.GetString("GOOSE_TABLE"))
+	goose.SetTableName(cfg.Database.MigrationsTable)
 
 	if err := goose.SetDialect("postgres"); err != nil {
 		slog.Error("failed to set goose dialect", slog.Any("error", err))
@@ -114,7 +92,7 @@ func main() {
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
 
-	authMiddleware := maxonmw.AuthMiddleware(environment.GetString("JWT_SECRET"))
+	authMiddleware := maxonmw.AuthMiddleware(cfg.Auth.JwtSecret)
 	adminMiddleware := maxonmw.AdminMiddleware()
 
 	userHandler := handler.NewUserHandler(handler.UserHandlerDeps{
@@ -134,7 +112,7 @@ func main() {
 				UserRepo: userRepo,
 				RoleRepo: roleRepo,
 				Config: auth.LoginUseCaseConfig{
-					JwtSecret: environment.GetString("JWT_SECRET"),
+					JwtSecret: cfg.Auth.JwtSecret,
 				},
 			},
 		),
@@ -149,7 +127,7 @@ func main() {
 			auth.RefreshUseCaseDeps{
 				Repo: authRepo,
 				Config: auth.RefreshUseCaseConfig{
-					JwtSecret: environment.GetString("JWT_SECRET"),
+					JwtSecret: cfg.Auth.JwtSecret,
 				},
 			},
 		),
